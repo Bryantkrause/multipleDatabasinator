@@ -77,11 +77,11 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 DATABASES = {
     'default': {},
-    'user_db': {
+    'users_db': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'users.db.sqlite3',
     },
-    'tire_db': {
+    'tires_db': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'tires.db.sqlite3',
     },
@@ -134,5 +134,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATABASE_ROUTERS = ['routers.db_routers.AuthRouter',
-                    'routers.db_routers.Tire',
-                    'routers.db_routers.Pallet']
+                    'routers.db_routers.Tires',
+                    'routers.db_routers.Pallets']
