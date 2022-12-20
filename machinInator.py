@@ -3,14 +3,25 @@ import numpy as np
 
 
 # set columna that actually matter
-columnsToUse = [
-    'Acct','Type','Date','Num','Name','Memo','Class','Debit','Credit'
+columnNames = [
+    'Accts', 'Type', 'Date', 'Num', 'Name', 'Memo', 'Class','Clr','Split', 'Debit', 'Credit','Balance'
+]
+columnsToDelete = [
+    'Balance', 'Clr', 'Split',
 ]
 
 # open file
-file = r'C:\Users\bkrause\Documents\RawDataInatorMachineLearningInator.csv'
+file = r'C:\Users\bkrause\Documents\MachineLearning2022.csv'
+refined = r'C:\Users\bkrause\Documents\refinedMachineLearning2022.xlsx'
 # convert file to data frame
-df = pd.read_csv(file, parse_dates=['Date'], usecols=columnsToUse)
+df = pd.read_csv(file, parse_dates=['Date'])
+df.columns = columnNames
+df = df.drop(columnsToDelete,axis=1)
+print(df.columns)
+print(df.head())
+# change format from amazing qb to usable data
+df['Accts'].ffill(inplace=True)
+df = df.dropna(subset=['Date'])
 # update null values to 0
 df = df.fillna(0)
 
@@ -18,23 +29,63 @@ df = df.fillna(0)
 df['Actual'] = df['Debit'] - df['Credit']
 data = df.drop(columns=['Debit', 'Credit'])
 
+
+# convert 0 to error
+data['Name'] = data['Name'].replace([0],'Error')
+
 # data check1 convert vague data names to actual locations based on NAME
+
 conditionsName = [
+    data['Name'].str.contains(r'Error', na=False),
+    data['Name'].str.contains(r'11937-1 - TT', na=False),
+    data['Name'].str.contains(r'16700 Cerritos', na=False),
+    data['Name'].str.contains(r'CASH', na=False),
     data['Name'].str.contains(r'CLI - CONTROL ACCOUNT', na=False),
-    data['Name'].str.contains(r'WESTSET DISTRIBUTION INC.', na=False),
-    data['Name'].str.contains(r'TOTAL', na=False),
     data['Name'].str.contains(r'INTERCOMPANY - SHARED', na=False),
-    data['Name'].str.contains(r'WESTSET DISTRIBUTION INC. - 16107', na=False),
+    data['Name'].str.contains(r'JOSE V. GARCIA', na=False),
+    data['Name'].str.contains(r'MARCO ANTONIO FLORES', na=False),
+    data['Name'].str.contains(r'OSWALDO MESINA VENTURA', na=False),
+    data['Name'].str.contains(r'QTOT', na=False),
+    data['Name'].str.contains(r'SALVADOR CUEVAS JR.', na=False),
+    data['Name'].str.contains(r'SAMUEL F MACHUCA TINAJERO', na=False),
+    data['Name'].str.contains(
+        r'THE SUPERIOR COURT OF CA, COUNTY VENTURA', na=False),
+    data['Name'].str.contains(r'TOSHIBA FINANCIAL SERVICES', na=False),
+    data['Name'].str.contains(r'TOTAL', na=False),
+    data['Name'].str.contains(r'Vendor', na=False),
+    data['Name'].str.contains(r'VOID CHECK', na=False),
+    data['Name'].str.contains(r'WESTSET DISTRIBUTION  - 11937', na=False),
     data['Name'].str.contains(r'WESTSET DISTRIBUTION - 11937', na=False),
-    data['Name'].str.contains(r'RANCHO CUCAMONGA CHAMBER OF COMMERCE', na=False),
-    data['Name'].str.contains(r'HUGO GALINDO', na=False)
+    data['Name'].str.contains(r'WESTSET DISTRIBUTION INC.', na=False),
+    data['Name'].str.contains(r'WESTSET DISTRIBUTION INC. - 16107', na=False),
+    data['Name'].str.contains(r'WESTSET LOGISTICS', na=False)
+
 
 ]
-# choicesName = [
-#     'Total', 'Fullerton', 'Total', 'Share', 'Cerritos', 'Downey', 'Total', 'Total'
-# ]
+
 choicesName =[
-    'Total', 'Warehouse', 'Total', 'Share', 'Warehouse', 'Warehouse', 'Total', 'Total'
+    'Error',
+    'Warehouse',
+    'Warehouse',
+    'Total',
+    'Total',
+    'Share',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Total',
+    'Warehouse',
+    'Warehouse',
+    'Warehouse',
+    'Warehouse',
+    'Warehouse'
 ]
 data['LocationName'] = np.select(conditionsName, choicesName, default='NA')
 
@@ -137,10 +188,16 @@ data['checkLocation'] = data.apply(
     lambda x: 0 if x['LocationName'] == x['LocationClass'] else x['Num'], axis=1)
 
 check = data.loc[data['checkLocation'] != 0]
+
+check = data.groupby(
+    ['checkLocation', 'Accts','Name',  check.Date.dt.month, 'Class']).sum()
 print(check.head())
+
 # 1 version of data
-monthly = data.groupby([data.Date.dt.month, 'Acct', 'Class']).sum()
+monthly = data.groupby([data.Date.dt.month, 'Accts', 'Class']).sum()
 
-
-
-
+writer = pd.ExcelWriter(refined, engine='xlsxwriter')
+data.to_excel(writer, sheet_name='moreBetterer')
+check.to_excel(writer, sheet_name='ITSWRONG')
+monthly.to_excel(writer, sheet_name='monthly')
+writer.close()
