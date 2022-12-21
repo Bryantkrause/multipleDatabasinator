@@ -187,7 +187,7 @@ data['LocationClass'] = np.select(conditionsClass, choicesClass, default='NA')
 #  if no invoice provide date and dollar amount
 data['checkLocation'] = data.apply(
     lambda x: 0 if x['LocationName'] == x['LocationClass'] else f"{x['Date']}-{x['Actual']}-{x['Num']}", axis=1)
-
+# escape the character please
 data['checkLocation'] = data.apply(
     lambda x: 0 if x['LocationName'] == 'Total' and x['LocationClass'] == '000112 - IT / Special Projects' else x['checkLocation'], axis=1)
 
