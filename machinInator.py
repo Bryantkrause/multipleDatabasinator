@@ -4,7 +4,7 @@ import numpy as np
 
 # set columna that actually matter
 columnNames = [
-    'Accts', 'Type', 'Date', 'Num', 'Name', 'Memo', 'Class','Clr','Split', 'Debit', 'Credit','Balance'
+    'Accts', 'Type', 'Date', 'Num', 'Name', 'Memo', 'Class', 'Clr', 'Split', 'Debit', 'Credit', 'Balance'
 ]
 columnsToDelete = [
     'Balance', 'Clr', 'Split',
@@ -16,7 +16,7 @@ refined = r'C:\Users\bkrause\Documents\refinedMachineLearning2022.xlsx'
 # convert file to data frame
 df = pd.read_csv(file, parse_dates=['Date'])
 df.columns = columnNames
-df = df.drop(columnsToDelete,axis=1)
+df = df.drop(columnsToDelete, axis=1)
 print(df.columns)
 print(df.head())
 # change format from amazing qb to usable data
@@ -31,7 +31,7 @@ data = df.drop(columns=['Debit', 'Credit'])
 
 
 # convert 0 to error
-data['Name'] = data['Name'].replace([0],'Error')
+data['Name'] = data['Name'].replace([0], 'Error')
 
 # data check1 convert vague data names to actual locations based on NAME
 
@@ -63,7 +63,7 @@ conditionsName = [
 
 ]
 
-choicesName =[
+choicesName = [
     'Error',
     'Warehouse',
     'Warehouse',
@@ -158,8 +158,8 @@ choicesClass = ['Share',
                 'Warehouse',
                 'Warehouse',
                 'Warehouse',
-                'Warehouse',
-                'Warehouse',
+                'Total',
+                'Total',
                 'Warehouse',
                 'Warehouse',
                 'Warehouse',
@@ -183,14 +183,21 @@ data['LocationClass'] = np.select(conditionsClass, choicesClass, default='NA')
 
 
 # validate data
+# extrapilate exceptions due to terrible data integrity
+#  if no invoice provide date and dollar amount
+data['checkLocation'] = data.apply(
+    lambda x: 0 if x['LocationName'] == x['LocationClass'] else f"{x['Date']}-{x['Actual']}-{x['Num']}", axis=1)
 
 data['checkLocation'] = data.apply(
-    lambda x: 0 if x['LocationName'] == x['LocationClass'] else x['Num'], axis=1)
+    lambda x: 0 if x['LocationName'] == 'Total' and x['LocationClass'] == '000112 - IT / Special Projects' else x['checkLocation'], axis=1)
+
+data['checkLocation'] = data.apply(
+    lambda x: 0 if x['LocationName'] == 'INTERCOMPANY - SHARED' and x['LocationClass'] == '000103 - Acct / Hr' else x['checkLocation'], axis=1)
 
 check = data.loc[data['checkLocation'] != 0]
 
 check = data.groupby(
-    ['checkLocation', 'Accts','Name',  check.Date.dt.month, 'Class']).sum()
+    ['checkLocation', 'Accts', 'Name',  check.Date.dt.month, 'Class']).sum()
 print(check.head())
 
 # 1 version of data
