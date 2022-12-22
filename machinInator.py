@@ -148,21 +148,21 @@ conditionsClass = [
 choicesClass = ['Share',
                 'Total',
                 'Total',
+                'Warehouse',
                 'Total',
-                'Total',
-                'Total',
-                'Total',
-                'Warehouse',
-                'Warehouse',
-                'Warehouse',
-                'Warehouse',
-                'Warehouse',
-                'Warehouse',
                 'Total',
                 'Total',
                 'Warehouse',
                 'Warehouse',
                 'Warehouse',
+                'Warehouse',
+                'Warehouse',
+                'Warehouse',
+                'Warehouse',
+                'Warehouse',
+                'Share',
+                'Total',
+                'Total',
                 'Share',
                 'Total',
                 'Total',
@@ -188,11 +188,11 @@ data['LocationClass'] = np.select(conditionsClass, choicesClass, default='NA')
 data['checkLocation'] = data.apply(
     lambda x: 0 if x['LocationName'] == x['LocationClass'] else f"{x['Date']}-{x['Actual']}-{x['Num']}", axis=1)
 # escape the character please
-data['checkLocation'] = data.apply(
-    lambda x: 0 if x['LocationName'] == 'Total' and x['LocationClass'] == '000112 - IT / Special Projects' else x['checkLocation'], axis=1)
+data['checkLocation2'] = data.apply(
+    lambda x: 0 if x['LocationName'] == 'Share' and x['Class'] == r'000112 - IT / Special Projects' else 1, axis=1)
 
-data['checkLocation'] = data.apply(
-    lambda x: 0 if x['LocationName'] == 'INTERCOMPANY - SHARED' and x['LocationClass'] == '000103 - Acct / Hr' else x['checkLocation'], axis=1)
+data['checkLocation3'] = data.apply(
+    lambda x: 0 if x['LocationName'] == 'Share' and x['Class'] == r'000103 - Acct / Hr' else 1, axis=1)
 
 check = data.loc[data['checkLocation'] != 0]
 
